@@ -78,6 +78,7 @@ export default {
   'lmi.title': 'Labour Market Integration (from Nov 3, 2026)',
   'lmi.highWage': 'Canadian high-wage occupation experience (12+ months)',
   'lmi.highWageHelp': 'Median wage of the occupation compared with the average median wage. Needs 1+ year of Canadian work.',
+  'lmi.highWageList': 'IRCC’s list of high-wage occupations',
   'lmi.jobOffer': 'Qualifying job offer',
   'lmi.jobOfferHelp': 'Valid Express Entry job offer in a high-wage occupation. No LMIA needed.',
   'lmi.higherOf': 'Only the higher of the two paths counts: Canadian work ({work}) or job offer ({offer}).',

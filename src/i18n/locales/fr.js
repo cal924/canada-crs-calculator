@@ -78,6 +78,7 @@ export default {
   'lmi.title': 'Intégration au marché du travail (à partir du 3 nov. 2026)',
   'lmi.highWage': 'Expérience au Canada dans une profession à salaire élevé (12 mois ou plus)',
   'lmi.highWageHelp': 'Salaire médian de la profession comparé au salaire médian moyen. Exige au moins 1 an de travail au Canada.',
+  'lmi.highWageList': 'Liste des professions à salaire élevé d’IRCC',
   'lmi.jobOffer': 'Offre d’emploi admissible',
   'lmi.jobOfferHelp': 'Offre d’emploi valide pour Entrée express dans une profession à salaire élevé. Aucune EIMT requise.',
   'lmi.higherOf': 'Seul le plus élevé des deux compte : travail au Canada ({work}) ou offre d’emploi ({offer}).',

@@ -41,6 +41,8 @@ const DEFAULTS = {
   spouseLanguage: { test: 'ielts', scores: emptyScores() },
 };
 
+const HIGH_WAGE_LIST_URL = 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/high-wage.html';
+
 const SOURCES = [
   ['footer.criteria', 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html'],
   ['footer.changes', 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/changes.html'],
@@ -261,7 +263,13 @@ export default function App() {
                   <div className="row">
                     <div className="col-md-6">
                       <SelectField label={t('lmi.highWage')} value={form.highWage}
-                        onChange={set('highWage')} options={options.wage} help={t('lmi.highWageHelp')} />
+                        onChange={set('highWage')} options={options.wage}
+                        help={(
+                          <>
+                            {t('lmi.highWageHelp')}{' '}
+                            <a href={HIGH_WAGE_LIST_URL} target="_blank" rel="noreferrer">{t('lmi.highWageList')} ↗</a>
+                          </>
+                        )} />
                     </div>
                     <div className="col-md-6">
                       <SelectField label={t('lmi.jobOffer')} value={form.jobOffer} onChange={set('jobOffer')}

@@ -78,6 +78,7 @@ export default {
   'lmi.title': '勞動市場融入（2026 年 11 月 3 日起）',
   'lmi.highWage': '加拿大高薪職業工作經驗（12 個月或以上）',
   'lmi.highWageHelp': '該職業的薪資中位數與全體平均薪資中位數之比較。需具備至少 1 年加拿大工作經驗。',
+  'lmi.highWageList': 'IRCC 高薪職業清單',
   'lmi.jobOffer': '合資格工作邀約',
   'lmi.jobOfferHelp': '符合快速通道規定、屬高薪職業的有效工作邀約，無需 LMIA。',
   'lmi.higherOf': '只計算兩者中較高者：加拿大工作經驗（{work}）或工作邀約（{offer}）。',
