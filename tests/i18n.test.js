@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { LOCALES, detectLocale, translate } from '../src/i18n/index.js';
+import { LOCALES, chooseLocale, localeFromSearch, resolveLocale, translate, urlWithLocale } from '../src/i18n/index.js';
 import en from '../src/i18n/locales/en.js';
 
 const enKeys = Object.keys(en).sort();
@@ -40,17 +40,49 @@ test('every key used in the UI exists in English', () => {
   assert.deepEqual([...used].filter((k) => !(k in en)), []);
 });
 
-test('detectLocale maps browser languages', () => {
-  assert.equal(detectLocale(['zh-TW']), 'zh-Hant');
-  assert.equal(detectLocale(['zh-HK']), 'zh-Hant');
-  assert.equal(detectLocale(['zh-Hant-CA']), 'zh-Hant');
-  assert.equal(detectLocale(['zh-CN']), 'zh-Hans');
-  assert.equal(detectLocale(['zh']), 'zh-Hans');
-  assert.equal(detectLocale(['fr-CA']), 'fr');
-  assert.equal(detectLocale(['hi-IN']), 'hi');
-  assert.equal(detectLocale(['de-DE', 'fr']), 'fr');
-  assert.equal(detectLocale(['de-DE']), 'en');
-  assert.equal(detectLocale([]), 'en');
+test('resolveLocale accepts codes and common variants', () => {
+  assert.equal(resolveLocale('fr'), 'fr');
+  assert.equal(resolveLocale('FR-ca'), 'fr');
+  assert.equal(resolveLocale('hi-IN'), 'hi');
+  assert.equal(resolveLocale('en-US'), 'en');
+  assert.equal(resolveLocale('zh-Hant'), 'zh-Hant');
+  assert.equal(resolveLocale('zh-TW'), 'zh-Hant');
+  assert.equal(resolveLocale('zh-HK'), 'zh-Hant');
+  assert.equal(resolveLocale('zh_hant'), 'zh-Hant');
+  assert.equal(resolveLocale('zh-Hans'), 'zh-Hans');
+  assert.equal(resolveLocale('zh-CN'), 'zh-Hans');
+  assert.equal(resolveLocale('zh'), 'zh-Hans');
+  assert.equal(resolveLocale('de'), null);
+  assert.equal(resolveLocale(''), null);
+  assert.equal(resolveLocale(null), null);
+});
+
+test('localeFromSearch reads a supported ?lang=', () => {
+  assert.equal(localeFromSearch(''), null);
+  assert.equal(localeFromSearch('?lang=de'), null);
+  assert.equal(localeFromSearch('?lang=zh-TW'), 'zh-Hant');
+  assert.equal(localeFromSearch('?x=1&lang=hi'), 'hi');
+});
+
+test('chooseLocale: ?lang= → last choice → browser → English', () => {
+  const all = { search: '?lang=hi', stored: 'fr', languages: ['zh-TW'] };
+  assert.equal(chooseLocale(all), 'hi');
+  assert.equal(chooseLocale({ ...all, search: '' }), 'fr');
+  assert.equal(chooseLocale({ ...all, search: '?lang=de' }), 'fr', 'unsupported ?lang= is ignored');
+  assert.equal(chooseLocale({ ...all, search: '', stored: null }), 'zh-Hant');
+  assert.equal(chooseLocale({ ...all, search: '', stored: 'xx' }), 'zh-Hant', 'bad stored value is ignored');
+  assert.equal(chooseLocale({ search: '', stored: null, languages: ['de-DE', 'fr-CA'] }), 'fr');
+  assert.equal(chooseLocale({ search: '', stored: null, languages: ['de-DE'] }), 'en');
+  assert.equal(chooseLocale(), 'en');
+  assert.equal(chooseLocale({ search: '?lang=en', stored: 'fr' }), 'en', 'explicit English beats the stored choice');
+});
+
+test('urlWithLocale sets or removes ?lang= and keeps the hash', () => {
+  const base = 'https://cal924.github.io/canada-crs-calculator/';
+  assert.equal(urlWithLocale(base, 'fr'), `${base}?lang=fr`);
+  assert.equal(urlWithLocale(`${base}?lang=fr#p=abc`, 'zh-Hant'), `${base}?lang=zh-Hant#p=abc`);
+  assert.equal(urlWithLocale(`${base}?lang=fr#p=abc`, 'en'), `${base}?lang=en#p=abc`);
+  assert.equal(urlWithLocale(`${base}?lang=de`, null), base);
 });
 
 test('translate interpolates and falls back', () => {

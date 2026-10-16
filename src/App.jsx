@@ -9,6 +9,7 @@ import ScoreSummary from './components/ScoreSummary.jsx';
 import DrawsModal from './components/DrawsModal.jsx';
 import { useDraws } from './draws/useDraws.js';
 import { useI18n } from './i18n/I18nProvider.jsx';
+import { buildShareUrl, decodeState } from './shareLink.js';
 
 const STORAGE_KEY = 'crs-calculator:v1';
 const today = new Date().toISOString().slice(0, 10);
@@ -65,13 +66,6 @@ function buildOptions(t) {
   };
 }
 
-// Shareable state lives in the URL hash so links work on a static host.
-function encodeState(state) {
-  return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
-}
-function decodeState(text) {
-  try { return JSON.parse(decodeURIComponent(escape(atob(text)))); } catch { return null; }
-}
 function loadInitialState() {
   const fromHash = window.location.hash.startsWith('#p=') ? decodeState(window.location.hash.slice(3)) : null;
   let saved = null;
@@ -144,7 +138,7 @@ export default function App() {
   }));
 
   const share = async () => {
-    const url = `${window.location.origin}${window.location.pathname}#p=${encodeState(form)}`;
+    const url = buildShareUrl(window.location.href, form);
     try {
       await navigator.clipboard.writeText(url);
       setShareStatus('summary.copied');
@@ -157,7 +151,7 @@ export default function App() {
 
   const reset = () => {
     setForm({ ...DEFAULTS });
-    window.history.replaceState(null, '', window.location.pathname);
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
   };
 
   return (

@@ -15,8 +15,11 @@ Live site: https://cal924.github.io/canada-crs-calculator/
   The default depends on today's date.
 - Enter raw scores for **IELTS General, CELPIP-General, PTE Core and TCF Canada**, or enter CLB/NCLC levels
   directly (use NCLC levels for TEF Canada).
-- **Five interface languages:** English, Français, 繁體中文, 简体中文 and हिन्दी. The default follows the browser
-  language, and the choice is remembered.
+- **Five interface languages:** English, Français, 繁體中文, 简体中文 and हिन्दी. The starting language is, in order:
+  `?lang=` in the address (`fr`, `zh-Hant`/`zh-TW`/`zh-HK`, `zh-Hans`/`zh-CN`, `hi` or `en`, e.g.
+  https://cal924.github.io/canada-crs-calculator/?lang=fr), then the last language picked in the menu, then the
+  browser's language, then English. Picking a language also writes `?lang=` into the address. Links from the share button
+  leave `?lang=` out, so the recipient sees their own language. A `?lang=` link on its own isn't remembered.
 - **Latest Express Entry draws:** a popup with every round of invitations (filter by draw type, ✓ where your
   score met the cutoff), the current pool score distribution, the data's last-update time and a link to IRCC's
   rounds page. The score card also shows the latest draw's cutoff.
@@ -67,7 +70,7 @@ counts as activity, so this only matters if IRCC stops publishing draws.
 
 1. Copy `src/i18n/locales/en.js` to a new file such as `pa.js`, and translate the values. Keep the keys and any
    `{placeholders}` unchanged.
-2. Register it in the `LOCALES` list in `src/i18n/index.js` (and in `detectLocale` if you want auto-detection).
+2. Register it in the `LOCALES` list in `src/i18n/index.js`. Its `code` is the `?lang=` value.
 3. Run `npm test`. It fails if any key or placeholder is missing.
 
 ## Deploying to GitHub Pages

@@ -16,21 +16,42 @@ export const LOCALES = [
 export const DEFAULT_LOCALE = 'en';
 const byCode = Object.fromEntries(LOCALES.map((l) => [l.code, l]));
 
-export const isLocale = (code) => Object.hasOwn(byCode, code);
+export const LOCALE_PARAM = 'lang';
 
-/** Pick the best supported locale from a list of browser language tags (e.g. navigator.languages). */
-export function detectLocale(languages = []) {
-  for (const tag of languages) {
-    const lower = String(tag).toLowerCase();
-    if (lower.startsWith('zh')) {
-      return /hant|-tw|-hk|-mo/.test(lower) ? 'zh-Hant' : 'zh-Hans';
-    }
-    const base = lower.split('-')[0];
-    if (base === 'fr') return 'fr';
-    if (base === 'hi') return 'hi';
-    if (base === 'en') return 'en';
-  }
-  return DEFAULT_LOCALE;
+/**
+ * Map a language tag from the ?lang= query parameter to a supported locale, or null if unsupported.
+ * Accepts exact codes (zh-Hant) and common variants (zh-TW, zh-HK, zh-CN, fr-CA, hi-IN), case-insensitively.
+ */
+export function resolveLocale(tag) {
+  const lower = String(tag ?? '').trim().toLowerCase();
+  if (!lower) return null;
+  if (lower.startsWith('zh')) return /hant|-tw|-hk|-mo/.test(lower) ? 'zh-Hant' : 'zh-Hans';
+  const base = lower.split(/[-_]/)[0];
+  return Object.hasOwn(byCode, base) ? base : null;
+}
+
+/** Supported locale from ?lang= in a URL query string, or null. */
+export function localeFromSearch(search) {
+  return resolveLocale(new URLSearchParams(search).get(LOCALE_PARAM));
+}
+
+/**
+ * Starting language, in priority order:
+ * 1. ?lang= in the URL  2. the last language picked in the menu  3. the browser's languages  4. English
+ */
+export function chooseLocale({ search = '', stored = null, languages = [] } = {}) {
+  return localeFromSearch(search)
+    ?? resolveLocale(stored)
+    ?? languages.map(resolveLocale).find(Boolean)
+    ?? DEFAULT_LOCALE;
+}
+
+/** The same URL with ?lang= set to `locale`, or removed when `locale` is null. */
+export function urlWithLocale(href, locale) {
+  const url = new URL(href);
+  if (locale) url.searchParams.set(LOCALE_PARAM, locale);
+  else url.searchParams.delete(LOCALE_PARAM);
+  return url.toString();
 }
 
 /** Look up a message, falling back to English, then to the key. Replaces {name} placeholders. */
