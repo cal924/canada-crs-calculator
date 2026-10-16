@@ -97,3 +97,11 @@ test('language test conversion', () => {
   assert.deepEqual(toClbList('tcf', [549, 453, 12, 3]), [10, 7, 8, 0]);
   assert.equal(toClb('ielts', 0, ''), 0);
 });
+
+test('category eligibility flags', () => {
+  assert.deepEqual(calculateCRS(base).eligibility, { frenchCategory: false, cec: true });
+  assert.equal(calculateCRS({ ...base, canadianYears: 0 }).eligibility.cec, false);
+  assert.equal(calculateCRS({ ...base, secondClb: [7, 7, 7, 7] }).eligibility.frenchCategory, true);
+  assert.equal(calculateCRS({ ...base, secondClb: [7, 7, 7, 6] }).eligibility.frenchCategory, false);
+  assert.equal(calculateCRS({ ...base, firstLanguage: 'fr', firstClb: [9, 8, 7, 7] }).eligibility.frenchCategory, true);
+});

@@ -136,6 +136,11 @@ export function calculateCRS(p) {
     spouse, spouseTotal,
     transfer, transferGroups, transferTotal,
     additional, additionalTotal,
+    // Basic category checks used to compare against category draws (not a full program-eligibility check).
+    eligibility: {
+      frenchCategory: Math.min(...french) >= 7, // NCLC 7+ in all four French abilities
+      cec: canadianYears >= 1, // Canadian Experience Class needs 1+ year of Canadian skilled work
+    },
     labour, labourTotal,
     total: coreTotal + spouseTotal + transferTotal + additionalTotal + labourTotal,
   };

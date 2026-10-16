@@ -21,33 +21,69 @@ function Group({ title, total, max, children }) {
   );
 }
 
-function LatestDraw({ draws, total, onOpenDraws, t, locale }) {
-  const latest = draws.data?.rounds[0];
+const isCec = (round) => round.category.toLowerCase() === 'canadian experience class';
+const isFrench = (round) => round.category.toLowerCase().includes('french');
+
+function CutoffRow({ label, round, badge, verdict, t, dateFmt }) {
   return (
-    <div className="border rounded p-2 mb-3 small d-flex align-items-center justify-content-between gap-2 d-print-none">
-      <div>
-        {latest ? (
-          <>
-            <div className="text-body-secondary">
-              {t('draws.latestCutoff', {
-                date: new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(parseDate(latest.date)),
-              })}
-            </div>
-            <div>
-              <span className="fw-bold fs-5">{latest.crs}</span>{' '}
-              <span className="text-body-secondary">{latest.category}</span>
-            </div>
-            <div className={total >= latest.crs ? 'text-success fw-medium' : 'text-body-secondary'}>
-              {total >= latest.crs ? t('draws.aboveLatest') : t('draws.belowLatest', { gap: latest.crs - total })}
-            </div>
-          </>
-        ) : (
-          <span className="text-body-secondary">{t('draws.title')}</span>
-        )}
+    <li className="list-group-item px-0 py-2 bg-transparent">
+      <div className="d-flex justify-content-between align-items-baseline gap-2">
+        <div>
+          <span className="fw-medium">{label}</span>
+          {badge && <span className="badge text-bg-secondary fw-normal ms-1">{badge}</span>}
+          <div className="text-body-secondary">{dateFmt.format(parseDate(round.date))} · {round.category}</div>
+        </div>
+        <span className="fw-bold fs-5">{round.crs}</span>
       </div>
-      <button type="button" className="btn btn-sm btn-outline-danger text-nowrap" onClick={onOpenDraws}>
-        {t('draws.button')}
-      </button>
+      {verdict}
+    </li>
+  );
+}
+
+// Latest draw overall, plus the latest CEC and French-language draws, where the applicant's score is compared
+// only if they meet that category's basic requirement.
+function LatestDraws({ draws, result, onOpenDraws, t, locale }) {
+  const rounds = draws.data?.rounds ?? [];
+  const latest = rounds[0];
+  const cec = rounds.find(isCec);
+  const french = rounds.find(isFrench);
+  const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+
+  const verdict = (round, eligible, needKey) => {
+    if (!eligible) return <div className="text-body-secondary">{t(needKey)}</div>;
+    const met = result.total >= round.crs;
+    return (
+      <div className={met ? 'text-success fw-medium' : 'text-body-secondary'}>
+        {met ? t('draws.aboveLatest') : t('draws.belowLatest', { gap: round.crs - result.total })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="border rounded px-2 pt-2 mb-3 small d-print-none">
+      <div className="d-flex align-items-center justify-content-between gap-2">
+        <h3 className="h6 mb-0">{t('draws.recentCutoffs')}</h3>
+        <button type="button" className="btn btn-sm btn-outline-danger text-nowrap" onClick={onOpenDraws}>
+          {t('draws.button')}
+        </button>
+      </div>
+      {latest ? (
+        <ul className="list-group list-group-flush">
+          {latest !== cec && latest !== french && (
+            <CutoffRow label={t('draws.latestRound')} round={latest} t={t} dateFmt={dateFmt} />
+          )}
+          {cec && (
+            <CutoffRow label={t('draws.latestCec')} round={cec} badge={cec === latest ? t('draws.isLatest') : null}
+              verdict={verdict(cec, result.eligibility.cec, 'draws.needCec')} t={t} dateFmt={dateFmt} />
+          )}
+          {french && (
+            <CutoffRow label={t('draws.latestFrench')} round={french} badge={french === latest ? t('draws.isLatest') : null}
+              verdict={verdict(french, result.eligibility.frenchCategory, 'draws.needFrench')} t={t} dateFmt={dateFmt} />
+          )}
+        </ul>
+      ) : (
+        <p className="text-body-secondary py-2 mb-0">{draws.error ? t('draws.error') : t('draws.loading')}</p>
+      )}
     </div>
   );
 }
@@ -69,7 +105,7 @@ export default function ScoreSummary({ result, onShare, shareStatus, onReset, dr
           </span>
         </div>
 
-        <LatestDraw draws={draws} total={r.total} onOpenDraws={onOpenDraws} t={t} locale={locale} />
+        <LatestDraws draws={draws} result={r} onOpenDraws={onOpenDraws} t={t} locale={locale} />
 
         <Group title={t('summary.core')} total={r.coreTotal} max={lmi ? (s ? 390 : 420) : (s ? 460 : 500)}>
           <Row label={t('summary.age')} value={r.core.age} />
