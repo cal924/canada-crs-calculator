@@ -1,3 +1,4 @@
+import { parseDate } from '../draws/useDraws.js';
 import { useI18n } from '../i18n/I18nProvider.jsx';
 
 function Row({ label, value, muted }) {
@@ -20,8 +21,39 @@ function Group({ title, total, max, children }) {
   );
 }
 
-export default function ScoreSummary({ result, onShare, shareStatus, onReset }) {
-  const { t } = useI18n();
+function LatestDraw({ draws, total, onOpenDraws, t, locale }) {
+  const latest = draws.data?.rounds[0];
+  return (
+    <div className="border rounded p-2 mb-3 small d-flex align-items-center justify-content-between gap-2 d-print-none">
+      <div>
+        {latest ? (
+          <>
+            <div className="text-body-secondary">
+              {t('draws.latestCutoff', {
+                date: new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(parseDate(latest.date)),
+              })}
+            </div>
+            <div>
+              <span className="fw-bold fs-5">{latest.crs}</span>{' '}
+              <span className="text-body-secondary">{latest.category}</span>
+            </div>
+            <div className={total >= latest.crs ? 'text-success fw-medium' : 'text-body-secondary'}>
+              {total >= latest.crs ? t('draws.aboveLatest') : t('draws.belowLatest', { gap: latest.crs - total })}
+            </div>
+          </>
+        ) : (
+          <span className="text-body-secondary">{t('draws.title')}</span>
+        )}
+      </div>
+      <button type="button" className="btn btn-sm btn-outline-danger text-nowrap" onClick={onOpenDraws}>
+        {t('draws.button')}
+      </button>
+    </div>
+  );
+}
+
+export default function ScoreSummary({ result, onShare, shareStatus, onReset, draws, onOpenDraws }) {
+  const { t, locale } = useI18n();
   const r = result;
   const lmi = r.rules === 'lmi2026';
   const s = r.withSpouse;
@@ -36,6 +68,8 @@ export default function ScoreSummary({ result, onShare, shareStatus, onReset }) 
             {t(lmi ? 'summary.rulesAfter' : 'summary.rulesBefore')} · {t(s ? 'summary.withSpouse' : 'summary.single')}
           </span>
         </div>
+
+        <LatestDraw draws={draws} total={r.total} onOpenDraws={onOpenDraws} t={t} locale={locale} />
 
         <Group title={t('summary.core')} total={r.coreTotal} max={lmi ? (s ? 390 : 420) : (s ? 460 : 500)}>
           <Row label={t('summary.age')} value={r.core.age} />

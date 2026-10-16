@@ -44,3 +44,12 @@
 .locale-picker .form-select {
   max-width: 8.5rem;
 }
+
+.draws-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.modal thead th {
+  background-color: var(--bs-tertiary-bg);
+}

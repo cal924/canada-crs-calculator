@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { calculateCRS, defaultRulesFor } from './crs/calculator.js';
 import { toClbList } from './crs/languageTests.js';
 import { EDUCATION_LEVELS, LMI_EFFECTIVE_DATE, WAGE_TIERS } from './crs/tables.js';
@@ -6,6 +6,8 @@ import { CheckField, RadioGroup, Section, SelectField } from './components/Field
 import LanguageInput from './components/LanguageInput.jsx';
 import LocalePicker from './components/LocalePicker.jsx';
 import ScoreSummary from './components/ScoreSummary.jsx';
+import DrawsModal from './components/DrawsModal.jsx';
+import { useDraws } from './draws/useDraws.js';
 import { useI18n } from './i18n/I18nProvider.jsx';
 
 const STORAGE_KEY = 'crs-calculator:v1';
@@ -96,6 +98,10 @@ export default function App() {
   const [form, setForm] = useState(loadInitialState);
   const [shareStatus, setShareStatus] = useState('');
   const [theme, toggleTheme] = useTheme();
+  const draws = useDraws();
+  const [drawsOpen, setDrawsOpen] = useState(false);
+  const openDraws = useCallback(() => setDrawsOpen(true), []);
+  const closeDraws = useCallback(() => setDrawsOpen(false), []);
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
   const options = useMemo(() => buildOptions(t), [t]);
 
@@ -176,6 +182,9 @@ export default function App() {
         <div className="container">
           <h1 className="h3 fw-bold mb-1">{t('app.heroTitle')}</h1>
           <p className="mb-0 text-body-secondary">{t('app.heroText')}</p>
+          <button type="button" className="btn btn-outline-danger btn-sm mt-3 d-print-none" onClick={openDraws}>
+            📊 {t('draws.button')}
+          </button>
           {locale !== 'en' && <p className="small text-body-secondary fst-italic mt-2 mb-0">{t('app.translationNote')}</p>}
         </div>
       </header>
@@ -297,7 +306,8 @@ export default function App() {
 
           <aside className="col-lg-5 col-xl-4" id="score">
             <div className="sticky-lg-top score-sticky">
-              <ScoreSummary result={result} onShare={share} shareStatus={shareStatus} onReset={reset} />
+              <ScoreSummary result={result} onShare={share} shareStatus={shareStatus} onReset={reset}
+                draws={draws} onOpenDraws={openDraws} />
             </div>
           </aside>
         </div>
@@ -315,6 +325,8 @@ export default function App() {
           </a>
         </div>
       </div>
+
+      <DrawsModal open={drawsOpen} onClose={closeDraws} draws={draws} score={result.total} />
 
       <footer className="border-top py-4 small text-body-secondary">
         <div className="container">

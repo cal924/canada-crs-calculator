@@ -17,6 +17,9 @@ Live site: https://cal924.github.io/canada-crs-calculator/
   directly (use NCLC levels for TEF Canada).
 - **Five interface languages:** English, Français, 繁體中文, 简体中文 and हिन्दी. The default follows the browser
   language, and the choice is remembered.
+- **Latest Express Entry draws:** a popup with every round of invitations (filter by draw type, ✓ where your
+  score met the cutoff), the current pool score distribution, the data's last-update time and a link to IRCC's
+  rounds page. The score card also shows the latest draw's cutoff.
 - Live score breakdown, shareable link (state in the URL hash), print view, light/dark theme.
 - Inputs are saved in `localStorage` in your browser.
 
@@ -27,7 +30,8 @@ Requires Node.js 24+ (see `.nvmrc`; run `nvm use`).
 ```bash
 npm install
 npm run dev      # http://localhost:5173/canada-crs-calculator/
-npm test         # scoring engine unit tests (node:test)
+npm test         # unit tests (node:test)
+npm run fetch-draws  # refresh public/data/ee-rounds.json from IRCC
 npm run build    # static output in dist/
 ```
 
@@ -40,8 +44,24 @@ src/crs/languageTests.js  test score → CLB/NCLC conversion
 src/i18n/locales/         UI translations (en.js is the source and fallback)
 src/components/           Bootstrap form fields, language input, language picker, score summary
 src/App.jsx               page layout and form state
+src/components/DrawsModal.jsx  draws popup
+scripts/fetch-rounds.mjs  downloads and slims IRCC's rounds JSON
+public/data/ee-rounds.json  stored draws data (updated by GitHub Actions)
 tests/                    unit tests for the engine and translations
 ```
+
+## Draws data
+
+`.github/workflows/update-draws.yml` runs every 6 hours (and on demand from the Actions tab). It downloads
+[IRCC's rounds JSON](https://www.canada.ca/content/dam/ircc/documents/json/ee_rounds_123_en.json), keeps only the
+fields the site needs, and writes `public/data/ee-rounds.json`. If there's a new draw, it commits the file and
+starts the Pages deploy. If IRCC's format changes, the script fails instead of writing bad data, and the site keeps
+the last good copy.
+
+`updatedAt` in the file is the time the draw data last changed, which the popup shows as "Data updated".
+
+GitHub pauses scheduled workflows in public repos after 60 days without activity. New draws create commits, which
+counts as activity, so this only matters if IRCC stops publishing draws.
 
 ## Adding or editing a language
 

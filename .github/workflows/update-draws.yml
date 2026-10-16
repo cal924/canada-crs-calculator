@@ -1,0 +1,50 @@
+name: Update Express Entry draws
+
+# Checks IRCC's rounds data every 6 hours. When there is a new draw, it commits
+# public/data/ee-rounds.json and starts the Pages deploy.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write # commit the updated data file
+  actions: write  # start the deploy workflow
+
+concurrency:
+  group: update-draws
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Fetch rounds from IRCC
+        run: node scripts/fetch-rounds.mjs
+
+      - name: Commit if the data changed
+        id: commit
+        run: |
+          if git diff --quiet -- public/data/ee-rounds.json; then
+            echo "No new draws."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/ee-rounds.json
+          git commit -m "Update Express Entry draws data"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # Pushes made with GITHUB_TOKEN don't trigger other workflows, so start the deploy explicitly.
+      - name: Redeploy site
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main

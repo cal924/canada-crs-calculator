@@ -33,7 +33,7 @@ test('every key used in the UI exists in English', () => {
   // Literal keys only, e.g. t('summary.age') or 'footer.criteria' in a lookup list.
   const used = new Set();
   for (const f of files) {
-    for (const m of readFileSync(f, 'utf8').matchAll(/['"]((?:app|rules|about|education|edu|canEdu|lang|skill|work|years|lmi|wage|spouse|additional|summary|mobile|footer)\.[A-Za-z0-9]+)['"]/g)) {
+    for (const m of readFileSync(f, 'utf8').matchAll(/['"]((?:app|rules|about|education|edu|canEdu|lang|skill|work|years|lmi|wage|spouse|additional|summary|mobile|footer|draws)\.[A-Za-z0-9]+)['"]/g)) {
       used.add(m[1]);
     }
   }
