@@ -1,0 +1,61 @@
+# canada-crs-calculator
+
+An unofficial **Canada Express Entry CRS (Comprehensive Ranking System) score calculator**.
+It is a static site built with React and Bootstrap 5 and hosted on GitHub Pages. Everything runs in the browser:
+there is no backend, and nothing you enter leaves the page.
+
+Live site: https://cal924.github.io/canada-crs-calculator/
+
+## Features
+
+- All four CRS sections: core/human capital, spouse/partner factors, skill transferability (with the
+  50-point group caps and 100-point total cap), and additional points (PNP, French bonus, Canadian education, sibling).
+- **Two rule sets**: the rules before November 3, 2026, and the **Labour Market Integration** factor that applies
+  from November 3, 2026 (the higher of Canadian work length plus high-wage experience, or a high-wage job offer).
+  The default depends on today's date.
+- Enter raw scores for **IELTS General, CELPIP-General, PTE Core and TCF Canada**, or enter CLB/NCLC levels
+  directly (use NCLC levels for TEF Canada).
+- Live score breakdown, shareable link (state in the URL hash), print view, light/dark theme.
+- Inputs are saved in `localStorage` in your browser.
+
+## Development
+
+Requires Node.js 24+ (see `.nvmrc`; run `nvm use`).
+
+```bash
+npm install
+npm run dev      # http://localhost:5173/canada-crs-calculator/
+npm test         # scoring engine unit tests (node:test)
+npm run build    # static output in dist/
+```
+
+## Project layout
+
+```
+src/crs/tables.js         IRCC point tables (edit these when IRCC changes the rules)
+src/crs/calculator.js     pure scoring engine, no React
+src/crs/languageTests.js  test score → CLB/NCLC conversion
+src/components/           Bootstrap form fields, language input, score summary
+src/App.jsx               page layout and form state
+tests/                    unit tests for the engine
+```
+
+## Deploying to GitHub Pages
+
+1. Push to the `main` branch of `github.com/cal924/canada-crs-calculator`.
+2. In the repository, go to **Settings → Pages** and set **Source** to **GitHub Actions**.
+3. The workflow in `.github/workflows/deploy.yml` tests, builds and publishes `dist/`.
+
+If you rename the repository, update `base` in `vite.config.js`.
+
+## Sources and disclaimer
+
+Point tables come from IRCC's
+[CRS criteria](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html),
+[Express Entry changes](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/changes.html)
+and [language testing](https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements/language-testing.html)
+pages, checked on 2026-10-16.
+
+This tool is not affiliated with IRCC. It estimates points only. It does not check program eligibility,
+whether work experience qualifies, or whether a job offer is valid. Confirm your score with the
+[official IRCC CRS tool](https://ircc.canada.ca/english/immigrate/skilled/crs-tool.asp).
