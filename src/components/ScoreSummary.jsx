@@ -1,6 +1,8 @@
+import { useI18n } from '../i18n/I18nProvider.jsx';
+
 function Row({ label, value, muted }) {
   return (
-    <li className={`list-group-item d-flex justify-content-between py-1 px-0 border-0 ${muted ? 'text-body-secondary' : ''}`}>
+    <li className={`list-group-item d-flex justify-content-between gap-2 py-1 px-0 border-0 ${muted ? 'text-body-secondary' : ''}`}>
       <span>{label}</span><span className="fw-semibold">{value}</span>
     </li>
   );
@@ -9,9 +11,9 @@ function Row({ label, value, muted }) {
 function Group({ title, total, max, children }) {
   return (
     <div className="mb-3">
-      <div className="d-flex justify-content-between align-items-baseline border-bottom pb-1 mb-1">
+      <div className="d-flex justify-content-between align-items-baseline gap-2 border-bottom pb-1 mb-1">
         <h3 className="h6 mb-0">{title}</h3>
-        <span className="fw-bold">{total}<span className="text-body-secondary fw-normal small"> / {max}</span></span>
+        <span className="fw-bold text-nowrap">{total}<span className="text-body-secondary fw-normal small"> / {max}</span></span>
       </div>
       <ul className="list-group list-group-flush small">{children}</ul>
     </div>
@@ -19,6 +21,7 @@ function Group({ title, total, max, children }) {
 }
 
 export default function ScoreSummary({ result, onShare, shareStatus, onReset }) {
+  const { t } = useI18n();
   const r = result;
   const lmi = r.rules === 'lmi2026';
   const s = r.withSpouse;
@@ -27,60 +30,60 @@ export default function ScoreSummary({ result, onShare, shareStatus, onReset }) 
     <div className="card shadow score-card">
       <div className="card-body">
         <div className="text-center mb-3">
-          <div className="text-body-secondary small text-uppercase fw-semibold">Your estimated CRS score</div>
+          <div className="text-body-secondary small text-uppercase fw-semibold">{t('summary.heading')}</div>
           <div className="display-3 fw-bold text-danger lh-1 my-2" aria-live="polite">{r.total}</div>
-          <span className="badge text-bg-light border">
-            {lmi ? 'Rules from Nov 3, 2026' : 'Rules before Nov 3, 2026'} · {s ? 'with spouse/partner' : 'single'}
+          <span className="badge text-bg-light border text-wrap">
+            {t(lmi ? 'summary.rulesAfter' : 'summary.rulesBefore')} · {t(s ? 'summary.withSpouse' : 'summary.single')}
           </span>
         </div>
 
-        <Group title="Core / human capital" total={r.coreTotal} max={lmi ? (s ? 390 : 420) : (s ? 460 : 500)}>
-          <Row label="Age" value={r.core.age} />
-          <Row label="Education" value={r.core.education} />
-          <Row label="First official language" value={r.core.firstLanguage} />
-          <Row label="Second official language" value={r.core.secondLanguage} />
-          {!lmi && <Row label="Canadian work experience" value={r.core.canadianWork} />}
+        <Group title={t('summary.core')} total={r.coreTotal} max={lmi ? (s ? 390 : 420) : (s ? 460 : 500)}>
+          <Row label={t('summary.age')} value={r.core.age} />
+          <Row label={t('summary.education')} value={r.core.education} />
+          <Row label={t('summary.firstLanguage')} value={r.core.firstLanguage} />
+          <Row label={t('summary.secondLanguage')} value={r.core.secondLanguage} />
+          {!lmi && <Row label={t('summary.canadianWork')} value={r.core.canadianWork} />}
         </Group>
 
         {s && (
-          <Group title="Spouse / partner factors" total={r.spouseTotal} max={40}>
-            <Row label="Education" value={r.spouse.education} />
-            <Row label="First official language" value={r.spouse.language} />
-            <Row label="Canadian work experience" value={r.spouse.canadianWork} />
+          <Group title={t('summary.spouse')} total={r.spouseTotal} max={40}>
+            <Row label={t('summary.education')} value={r.spouse.education} />
+            <Row label={t('summary.firstLanguage')} value={r.spouse.language} />
+            <Row label={t('summary.canadianWork')} value={r.spouse.canadianWork} />
           </Group>
         )}
 
-        <Group title="Skill transferability" total={r.transferTotal} max={100}>
-          <Row label="Education (language + Canadian work)" value={r.transferGroups.education} />
-          <Row label="Foreign work (language + Canadian work)" value={r.transferGroups.foreignWork} />
-          <Row label="Trade certificate" value={r.transferGroups.trade} />
+        <Group title={t('summary.transfer')} total={r.transferTotal} max={100}>
+          <Row label={t('summary.transferEducation')} value={r.transferGroups.education} />
+          <Row label={t('summary.transferForeign')} value={r.transferGroups.foreignWork} />
+          <Row label={t('summary.trade')} value={r.transferGroups.trade} />
         </Group>
 
         {lmi && (
-          <Group title="Labour market integration" total={r.labourTotal} max={s ? 140 : 150}>
-            <Row label="Work length" value={r.labour.workLength} muted={r.labour.selected !== 'work'} />
-            <Row label="High-wage experience" value={r.labour.highWage} muted={r.labour.selected !== 'work'} />
-            <Row label="Job offer" value={r.labour.jobOfferPath} muted={r.labour.selected !== 'jobOffer'} />
+          <Group title={t('summary.labour')} total={r.labourTotal} max={s ? 140 : 150}>
+            <Row label={t('summary.workLength')} value={r.labour.workLength} muted={r.labour.selected !== 'work'} />
+            <Row label={t('summary.highWage')} value={r.labour.highWage} muted={r.labour.selected !== 'work'} />
+            <Row label={t('summary.jobOffer')} value={r.labour.jobOfferPath} muted={r.labour.selected !== 'jobOffer'} />
             <li className="list-group-item px-0 py-1 border-0 small text-body-secondary">
-              Counts the higher of Canadian work or job offer ({r.labour.selected === 'work' ? 'work' : 'job offer'} applied).
+              {t(r.labour.selected === 'work' ? 'summary.labourNoteWork' : 'summary.labourNoteOffer')}
             </li>
           </Group>
         )}
 
-        <Group title="Additional points" total={r.additionalTotal} max={600}>
-          <Row label="Provincial nomination" value={r.additional.nomination} />
-          <Row label="French language skills" value={r.additional.french} />
-          <Row label="Canadian post-secondary education" value={r.additional.canadianEducation} />
-          <Row label="Sibling in Canada" value={r.additional.sibling} />
+        <Group title={t('summary.additional')} total={r.additionalTotal} max={600}>
+          <Row label={t('summary.nomination')} value={r.additional.nomination} />
+          <Row label={t('summary.french')} value={r.additional.french} />
+          <Row label={t('summary.canadianEducation')} value={r.additional.canadianEducation} />
+          <Row label={t('summary.sibling')} value={r.additional.sibling} />
         </Group>
 
         <div className="d-grid gap-2 d-print-none">
           <button type="button" className="btn btn-danger" onClick={onShare}>
-            {shareStatus || 'Copy shareable link'}
+            {shareStatus ? t(shareStatus) : t('summary.share')}
           </button>
           <div className="btn-group">
-            <button type="button" className="btn btn-outline-secondary" onClick={() => window.print()}>Print</button>
-            <button type="button" className="btn btn-outline-secondary" onClick={onReset}>Reset</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={() => window.print()}>{t('summary.print')}</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={onReset}>{t('summary.reset')}</button>
           </div>
         </div>
       </div>

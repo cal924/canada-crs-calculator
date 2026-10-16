@@ -2,11 +2,11 @@
 // https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements/language-testing.html
 // Skill order everywhere in this app: listening, reading, writing, speaking.
 
-export const SKILLS = ['Listening', 'Reading', 'Writing', 'Speaking'];
+export const SKILLS = ['listening', 'reading', 'writing', 'speaking']; // message keys: skill.<name>
 
 // For each test: minimum score needed for CLB 4, 5, 6, 7, 8, 9, 10 per skill.
 export const LANGUAGE_TESTS = {
-  clb: { label: 'I know my CLB levels', language: 'en', direct: true },
+  clb: { labelKey: 'lang.knowClb', language: 'en', direct: true },
   celpip: {
     label: 'CELPIP-General', language: 'en',
     input: { min: 0, max: 12, step: 1 },
@@ -32,7 +32,7 @@ export const LANGUAGE_TESTS = {
       [42, 51, 59, 68, 76, 84, 89],
     ],
   },
-  nclc: { label: 'I know my NCLC levels (e.g. TEF Canada)', language: 'fr', direct: true },
+  nclc: { labelKey: 'lang.knowNclc', language: 'fr', direct: true },
   tcf: {
     label: 'TCF Canada', language: 'fr',
     input: [{ min: 0, max: 699, step: 1 }, { min: 0, max: 699, step: 1 }, { min: 0, max: 20, step: 1 }, { min: 0, max: 20, step: 1 }],

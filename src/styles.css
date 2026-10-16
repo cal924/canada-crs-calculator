@@ -36,3 +36,11 @@
   .col-lg-5, .col-xl-4 { width: 100%; }
   .score-card { box-shadow: none !important; }
 }
+
+.locale-picker {
+  width: auto;
+  flex-wrap: nowrap;
+}
+.locale-picker .form-select {
+  max-width: 8.5rem;
+}

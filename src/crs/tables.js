@@ -5,16 +5,8 @@
 
 export const LMI_EFFECTIVE_DATE = '2026-11-03';
 
-export const EDUCATION_LEVELS = [
-  { key: 'less', label: 'Less than secondary school (high school)' },
-  { key: 'secondary', label: 'Secondary diploma (high school graduation)' },
-  { key: 'one', label: 'One-year post-secondary program' },
-  { key: 'two', label: 'Two-year post-secondary program' },
-  { key: 'bachelor', label: "Bachelor's degree or 3+ year post-secondary program" },
-  { key: 'multiple', label: 'Two or more credentials (one of them 3+ years)' },
-  { key: 'master', label: "Master's or professional degree (medicine, law, etc.)" },
-  { key: 'phd', label: 'Doctoral degree (PhD)' },
-];
+// Labels are translated in the UI via the `edu.<key>` messages.
+export const EDUCATION_LEVELS = ['less', 'secondary', 'one', 'two', 'bachelor', 'multiple', 'master', 'phd'].map((key) => ({ key }));
 
 // Indexed by EDUCATION_LEVELS order.
 export const EDUCATION_POINTS = {
@@ -48,12 +40,8 @@ export const CANADIAN_WORK_POINTS = {
 };
 
 // Labour Market Integration factor (from November 3, 2026).
-export const WAGE_TIERS = [
-  { key: 'none', label: 'None / not a high-wage occupation' },
-  { key: 'x13', label: 'At least 1.3× the average median wage' },
-  { key: 'x15', label: 'At least 1.5× the average median wage' },
-  { key: 'x20', label: 'At least 2× the average median wage' },
-];
+// Labels are translated in the UI via the `wage.<key>` messages.
+export const WAGE_TIERS = ['none', 'x13', 'x15', 'x20'].map((key) => ({ key }));
 export const HIGH_WAGE_EXPERIENCE_POINTS = { none: 0, x13: 20, x15: 40, x20: 70 };
 export const JOB_OFFER_POINTS = { none: 0, x13: 50, x15: 70, x20: 100 };
 

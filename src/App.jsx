@@ -4,7 +4,9 @@ import { toClbList } from './crs/languageTests.js';
 import { EDUCATION_LEVELS, LMI_EFFECTIVE_DATE, WAGE_TIERS } from './crs/tables.js';
 import { CheckField, RadioGroup, Section, SelectField } from './components/Fields.jsx';
 import LanguageInput from './components/LanguageInput.jsx';
+import LocalePicker from './components/LocalePicker.jsx';
 import ScoreSummary from './components/ScoreSummary.jsx';
+import { useI18n } from './i18n/I18nProvider.jsx';
 
 const STORAGE_KEY = 'crs-calculator:v1';
 const today = new Date().toISOString().slice(0, 10);
@@ -36,24 +38,30 @@ const DEFAULTS = {
   spouseLanguage: { test: 'ielts', scores: emptyScores() },
 };
 
-const AGES = Array.from({ length: 31 }, (_, i) => {
-  const age = i + 17;
-  return { key: String(age), label: age === 17 ? '17 or younger' : age === 47 ? '47 or older' : String(age) };
-});
-const CANADIAN_YEARS = [
-  { key: '0', label: 'None or less than a year' },
-  { key: '1', label: '1 year' }, { key: '2', label: '2 years' }, { key: '3', label: '3 years' },
-  { key: '4', label: '4 years' }, { key: '5', label: '5 years or more' },
+const SOURCES = [
+  ['footer.criteria', 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html'],
+  ['footer.changes', 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/changes.html'],
+  ['footer.languageTesting', 'https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements/language-testing.html'],
 ];
-const FOREIGN_YEARS = [
-  { key: '0', label: 'None or less than a year' },
-  { key: '1', label: '1 year' }, { key: '2', label: '2 years' }, { key: '3', label: '3 years or more' },
-];
-const CANADIAN_EDUCATION = [
-  { key: 'none', label: 'No Canadian credential' },
-  { key: 'short', label: '1- or 2-year diploma or certificate' },
-  { key: 'long', label: 'Degree, diploma or certificate of 3+ years, or a master’s, professional or doctoral degree' },
-];
+
+// Option lists depend on the current language, so they are built from `t`.
+function buildOptions(t) {
+  const years = (max, lastKey) => Array.from({ length: max + 1 }, (_, n) => ({
+    key: String(n),
+    label: n === 0 ? t('years.none') : n === max ? t(lastKey) : n === 1 ? t('years.one') : t('years.n', { n }),
+  }));
+  return {
+    ages: Array.from({ length: 31 }, (_, i) => {
+      const age = i + 17;
+      return { key: String(age), label: age === 17 ? t('about.age17') : age === 47 ? t('about.age47') : String(age) };
+    }),
+    canadianYears: years(5, 'years.fivePlus'),
+    foreignYears: years(3, 'years.threePlus'),
+    education: EDUCATION_LEVELS.map(({ key }) => ({ key, label: t(`edu.${key}`) })),
+    canadianEducation: ['none', 'short', 'long'].map((key) => ({ key, label: t(`canEdu.${key}`) })),
+    wage: WAGE_TIERS.map(({ key }) => ({ key, label: t(`wage.${key}`) })),
+  };
+}
 
 // Shareable state lives in the URL hash so links work on a static host.
 function encodeState(state) {
@@ -84,10 +92,12 @@ function useTheme() {
 }
 
 export default function App() {
+  const { t, locale } = useI18n();
   const [form, setForm] = useState(loadInitialState);
   const [shareStatus, setShareStatus] = useState('');
   const [theme, toggleTheme] = useTheme();
   const set = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
+  const options = useMemo(() => buildOptions(t), [t]);
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(form)); } catch { /* ignore */ }
@@ -131,10 +141,10 @@ export default function App() {
     const url = `${window.location.origin}${window.location.pathname}#p=${encodeState(form)}`;
     try {
       await navigator.clipboard.writeText(url);
-      setShareStatus('Link copied!');
+      setShareStatus('summary.copied');
     } catch {
       window.history.replaceState(null, '', url);
-      setShareStatus('Link is in the address bar');
+      setShareStatus('summary.inAddressBar');
     }
     setTimeout(() => setShareStatus(''), 2500);
   };
@@ -147,157 +157,141 @@ export default function App() {
   return (
     <>
       <nav className="navbar border-bottom bg-body sticky-top d-print-none">
-        <div className="container">
-          <span className="navbar-brand d-flex align-items-center gap-2 mb-0">
+        <div className="container flex-nowrap gap-2">
+          <span className="navbar-brand d-flex align-items-center gap-2 mb-0 me-auto text-truncate">
             <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width="28" height="28" />
-            <span className="fw-semibold">CRS Calculator</span>
-            <span className="badge text-bg-secondary fw-normal d-none d-sm-inline">Unofficial</span>
+            <span className="fw-semibold text-truncate">{t('app.brand')}</span>
+            <span className="badge text-bg-secondary fw-normal d-none d-md-inline">{t('app.unofficial')}</span>
           </span>
-          <button type="button" className="btn btn-sm btn-outline-secondary" onClick={toggleTheme}
-            aria-label="Toggle colour theme">
-            {theme === 'dark' ? '☀︎ Light' : '☾ Dark'}
+          <LocalePicker />
+          <button type="button" className="btn btn-sm btn-outline-secondary text-nowrap" onClick={toggleTheme}
+            aria-label={t('app.toggleTheme')} title={t('app.toggleTheme')}>
+            {theme === 'dark' ? '☀︎' : '☾'}
+            <span className="d-none d-sm-inline"> {t(theme === 'dark' ? 'app.themeLight' : 'app.themeDark')}</span>
           </button>
         </div>
       </nav>
 
       <header className="hero py-4 mb-4">
         <div className="container">
-          <h1 className="h3 fw-bold mb-1">Express Entry CRS score calculator</h1>
-          <p className="mb-0 text-body-secondary">
-            Estimate your Comprehensive Ranking System score for Canada’s Express Entry. Everything runs in your
-            browser — nothing you enter leaves this page.
-          </p>
+          <h1 className="h3 fw-bold mb-1">{t('app.heroTitle')}</h1>
+          <p className="mb-0 text-body-secondary">{t('app.heroText')}</p>
+          {locale !== 'en' && <p className="small text-body-secondary fst-italic mt-2 mb-0">{t('app.translationNote')}</p>}
         </div>
       </header>
 
       <main className="container pb-5">
         <div className="row g-4">
           <div className="col-lg-7 col-xl-8">
-            <Section step="1" title="Scoring rules">
-              <RadioGroup name="rules" label="Which CRS rules should apply?" value={form.rules} onChange={set('rules')}
+            <Section step="1" title={t('rules.title')}>
+              <RadioGroup name="rules" label={t('rules.question')} value={form.rules} onChange={set('rules')}
                 options={[
-                  { key: 'current', label: 'Before Nov 3, 2026' },
-                  { key: 'lmi2026', label: 'From Nov 3, 2026' },
+                  { key: 'current', label: t('rules.before') },
+                  { key: 'lmi2026', label: t('rules.after') },
                 ]} />
-              <div className="form-text">
-                From November 3, 2026, IRCC replaces Canadian work experience points with a
-                <strong> Labour Market Integration</strong> factor: the higher of Canadian work experience
-                (length + high-wage occupation) or a qualifying high-wage job offer, up to 150 points.
-              </div>
+              <div className="form-text">{t('rules.help')}</div>
             </Section>
 
-            <Section step="2" title="About you">
+            <Section step="2" title={t('about.title')}>
               <div className="row">
                 <div className="col-md-6">
-                  <SelectField label="Marital status" value={form.maritalStatus} onChange={set('maritalStatus')}
+                  <SelectField label={t('about.maritalStatus')} value={form.maritalStatus} onChange={set('maritalStatus')}
                     options={[
-                      { key: 'single', label: 'Never married / single, divorced, separated, widowed' },
-                      { key: 'married', label: 'Married or common-law' },
+                      { key: 'single', label: t('about.single') },
+                      { key: 'married', label: t('about.married') },
                     ]} />
                 </div>
                 <div className="col-md-6">
-                  <SelectField label="Age" value={form.age} onChange={set('age')} options={AGES}
-                    help="Your age on the day you get an invitation to apply." />
+                  <SelectField label={t('about.age')} value={form.age} onChange={set('age')} options={options.ages}
+                    help={t('about.ageHelp')} />
                 </div>
               </div>
               {form.maritalStatus === 'married' && (
                 <div className="border rounded p-3 bg-body-tertiary">
-                  <CheckField label="My spouse or partner is a Canadian citizen or permanent resident"
+                  <CheckField label={t('about.spouseCanadian')}
                     checked={form.spouseIsCanadian} onChange={set('spouseIsCanadian')} />
                   {!form.spouseIsCanadian && (
-                    <CheckField label="My spouse or partner will come with me to Canada"
+                    <CheckField label={t('about.spouseComing')}
                       checked={form.spouseComing} onChange={set('spouseComing')} />
                   )}
-                  <div className="small text-body-secondary">
-                    You are scored {withSpouse ? <strong>with</strong> : <strong>as single (without)</strong>} a
-                    spouse or partner.
-                  </div>
+                  <div className="small fw-medium">{t(withSpouse ? 'about.scoredWith' : 'about.scoredSingle')}</div>
                 </div>
               )}
             </Section>
 
-            <Section step="3" title="Education">
-              <SelectField label="Highest level of education" value={form.education} onChange={set('education')}
-                options={EDUCATION_LEVELS}
-                help="Foreign credentials need an Educational Credential Assessment (ECA)." />
-              <SelectField label="Canadian post-secondary education" value={form.canadianEducation}
-                onChange={set('canadianEducation')} options={CANADIAN_EDUCATION} className="mb-0" />
+            <Section step="3" title={t('education.title')}>
+              <SelectField label={t('education.highest')} value={form.education} onChange={set('education')}
+                options={options.education} help={t('education.ecaHelp')} />
+              <SelectField label={t('education.canadian')} value={form.canadianEducation}
+                onChange={set('canadianEducation')} options={options.canadianEducation} className="mb-0" />
             </Section>
 
-            <Section step="4" title="Official languages"
-              subtitle="Enter your test results. Scores are converted to Canadian Language Benchmark (CLB / NCLC) levels.">
-              <RadioGroup name="firstLanguage" label="First official language" value={form.firstLanguage}
+            <Section step="4" title={t('lang.title')} subtitle={t('lang.subtitle')}>
+              <RadioGroup name="firstLanguage" label={t('lang.first')} value={form.firstLanguage}
                 onChange={changeFirstLanguage}
-                options={[{ key: 'en', label: 'English' }, { key: 'fr', label: 'French' }]} />
+                options={[{ key: 'en', label: t('lang.english') }, { key: 'fr', label: t('lang.french') }]} />
               <LanguageInput language={form.firstLanguage} value={form.first} onChange={set('first')} />
               <hr />
-              <CheckField label={`I also have ${secondLanguage === 'fr' ? 'French' : 'English'} test results (second official language)`}
-                checked={form.hasSecond} onChange={set('hasSecond')}
-                help="Also used for the French language bonus (up to 50 points)." />
+              <CheckField label={t(secondLanguage === 'fr' ? 'lang.hasSecondFr' : 'lang.hasSecondEn')}
+                checked={form.hasSecond} onChange={set('hasSecond')} help={t('lang.secondHelp')} />
               {form.hasSecond && (
                 <LanguageInput language={secondLanguage} value={form.second} onChange={set('second')} />
               )}
             </Section>
 
-            <Section step="5" title="Work experience"
-              subtitle="Skilled work (TEER 0, 1, 2 or 3) in the last 10 years. Count full-time years (1,560 hours each).">
+            <Section step="5" title={t('work.title')} subtitle={t('work.subtitle')}>
               <div className="row">
                 <div className="col-md-6">
-                  <SelectField label="Canadian work experience" value={form.canadianYears}
-                    onChange={set('canadianYears')} options={CANADIAN_YEARS} />
+                  <SelectField label={t('work.canadian')} value={form.canadianYears}
+                    onChange={set('canadianYears')} options={options.canadianYears} />
                 </div>
                 <div className="col-md-6">
-                  <SelectField label="Foreign work experience" value={form.foreignYears}
-                    onChange={set('foreignYears')} options={FOREIGN_YEARS} />
+                  <SelectField label={t('work.foreign')} value={form.foreignYears}
+                    onChange={set('foreignYears')} options={options.foreignYears} />
                 </div>
               </div>
-              <CheckField label="I have a certificate of qualification from a Canadian province or territory (trades)"
-                checked={form.tradeCertificate} onChange={set('tradeCertificate')} />
+              <CheckField label={t('work.trade')} checked={form.tradeCertificate} onChange={set('tradeCertificate')} />
 
               {lmi && (
                 <div className="border rounded p-3 bg-body-tertiary">
-                  <h3 className="h6">Labour Market Integration (from Nov 3, 2026)</h3>
+                  <h3 className="h6">{t('lmi.title')}</h3>
                   <div className="row">
                     <div className="col-md-6">
-                      <SelectField label="Canadian high-wage occupation experience (12+ months)" value={form.highWage}
-                        onChange={set('highWage')} options={WAGE_TIERS}
-                        help="Median wage of the occupation compared with the average median wage. Needs 1+ year of Canadian work." />
+                      <SelectField label={t('lmi.highWage')} value={form.highWage}
+                        onChange={set('highWage')} options={options.wage} help={t('lmi.highWageHelp')} />
                     </div>
                     <div className="col-md-6">
-                      <SelectField label="Qualifying job offer" value={form.jobOffer} onChange={set('jobOffer')}
-                        options={WAGE_TIERS} help="Valid Express Entry job offer in a high-wage occupation. No LMIA needed." />
+                      <SelectField label={t('lmi.jobOffer')} value={form.jobOffer} onChange={set('jobOffer')}
+                        options={options.wage} help={t('lmi.jobOfferHelp')} />
                     </div>
                   </div>
                   <div className="small text-body-secondary">
-                    Only the higher of the two paths counts: Canadian work ({result.labour.workPath}) or job offer
-                    ({result.labour.jobOfferPath}).
+                    {t('lmi.higherOf', { work: result.labour.workPath, offer: result.labour.jobOfferPath })}
                   </div>
                 </div>
               )}
             </Section>
 
             {withSpouse && (
-              <Section step="6" title="Spouse or common-law partner">
+              <Section step="6" title={t('spouse.title')}>
                 <div className="row">
                   <div className="col-md-6">
-                    <SelectField label="Spouse’s highest education" value={form.spouseEducation}
-                      onChange={set('spouseEducation')} options={EDUCATION_LEVELS} />
+                    <SelectField label={t('spouse.education')} value={form.spouseEducation}
+                      onChange={set('spouseEducation')} options={options.education} />
                   </div>
                   <div className="col-md-6">
-                    <SelectField label="Spouse’s Canadian work experience" value={form.spouseCanadianYears}
-                      onChange={set('spouseCanadianYears')} options={CANADIAN_YEARS} />
+                    <SelectField label={t('spouse.canadianWork')} value={form.spouseCanadianYears}
+                      onChange={set('spouseCanadianYears')} options={options.canadianYears} />
                   </div>
                 </div>
-                <h3 className="h6">Spouse’s first official language</h3>
+                <h3 className="h6">{t('spouse.language')}</h3>
                 <LanguageInput value={form.spouseLanguage} onChange={set('spouseLanguage')} />
               </Section>
             )}
 
-            <Section step={withSpouse ? '7' : '6'} title="Additional factors">
-              <CheckField label="I have a provincial or territorial nomination (+600)"
-                checked={form.nomination} onChange={set('nomination')} />
-              <CheckField label="I (or my spouse/partner) have a brother or sister in Canada who is a citizen or PR, aged 18+ (+15)"
-                checked={form.sibling} onChange={set('sibling')} />
+            <Section step={withSpouse ? '7' : '6'} title={t('additional.title')}>
+              <CheckField label={t('additional.nomination')} checked={form.nomination} onChange={set('nomination')} />
+              <CheckField label={t('additional.sibling')} checked={form.sibling} onChange={set('sibling')} />
             </Section>
           </div>
 
@@ -312,12 +306,12 @@ export default function App() {
       <div className="mobile-score-bar fixed-bottom d-lg-none d-print-none bg-body border-top shadow-lg">
         <div className="container d-flex align-items-center justify-content-between py-2">
           <div>
-            <div className="small text-body-secondary lh-1">Estimated CRS score</div>
+            <div className="small text-body-secondary lh-1">{t('mobile.score')}</div>
             <div className="fs-3 fw-bold text-danger lh-sm">{result.total}</div>
           </div>
           <a href="#score" className="btn btn-outline-danger btn-sm"
             onClick={(e) => { e.preventDefault(); document.getElementById('score').scrollIntoView({ behavior: 'smooth' }); }}>
-            See breakdown
+            {t('mobile.breakdown')}
           </a>
         </div>
       </div>
@@ -325,21 +319,20 @@ export default function App() {
       <footer className="border-top py-4 small text-body-secondary">
         <div className="container">
           <p className="mb-2">
-            <strong>Disclaimer:</strong> This is an unofficial estimate and is not affiliated with Immigration,
-            Refugees and Citizenship Canada (IRCC). It does not check program eligibility. Always confirm your score
-            with the{' '}
+            <strong>{t('footer.disclaimerLabel')}</strong> {t('footer.disclaimer')}{' '}
             <a href="https://ircc.canada.ca/english/immigrate/skilled/crs-tool.asp" target="_blank" rel="noreferrer">
-              official IRCC CRS tool
-            </a>.
+              {t('footer.officialTool')}
+            </a>
           </p>
-          <p className="mb-0">
-            Point tables from IRCC’s{' '}
-            <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html"
-              target="_blank" rel="noreferrer">CRS criteria</a> and{' '}
-            <a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/changes.html"
-              target="_blank" rel="noreferrer">Express Entry changes</a> pages, checked October 16, 2026.{' '}
-            <a href="https://github.com/cal924/canada-crs-calculator" target="_blank" rel="noreferrer">Source on GitHub</a>.
-          </p>
+          <p className="mb-1">{t('footer.sources')}</p>
+          <ul className="list-inline mb-2">
+            {SOURCES.map(([key, href]) => (
+              <li className="list-inline-item" key={key}>
+                <a href={href} target="_blank" rel="noreferrer">{t(key)}</a>
+              </li>
+            ))}
+          </ul>
+          <a href="https://github.com/cal924/canada-crs-calculator" target="_blank" rel="noreferrer">{t('footer.source')}</a>
         </div>
       </footer>
     </>

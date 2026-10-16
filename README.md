@@ -15,6 +15,8 @@ Live site: https://cal924.github.io/canada-crs-calculator/
   The default depends on today's date.
 - Enter raw scores for **IELTS General, CELPIP-General, PTE Core and TCF Canada**, or enter CLB/NCLC levels
   directly (use NCLC levels for TEF Canada).
+- **Five interface languages:** English, Français, 繁體中文, 简体中文 and हिन्दी. The default follows the browser
+  language, and the choice is remembered.
 - Live score breakdown, shareable link (state in the URL hash), print view, light/dark theme.
 - Inputs are saved in `localStorage` in your browser.
 
@@ -35,10 +37,18 @@ npm run build    # static output in dist/
 src/crs/tables.js         IRCC point tables (edit these when IRCC changes the rules)
 src/crs/calculator.js     pure scoring engine, no React
 src/crs/languageTests.js  test score → CLB/NCLC conversion
-src/components/           Bootstrap form fields, language input, score summary
+src/i18n/locales/         UI translations (en.js is the source and fallback)
+src/components/           Bootstrap form fields, language input, language picker, score summary
 src/App.jsx               page layout and form state
-tests/                    unit tests for the engine
+tests/                    unit tests for the engine and translations
 ```
+
+## Adding or editing a language
+
+1. Copy `src/i18n/locales/en.js` to a new file such as `pa.js`, and translate the values. Keep the keys and any
+   `{placeholders}` unchanged.
+2. Register it in the `LOCALES` list in `src/i18n/index.js` (and in `detectLocale` if you want auto-detection).
+3. Run `npm test`. It fails if any key or placeholder is missing.
 
 ## Deploying to GitHub Pages
 

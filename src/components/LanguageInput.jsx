@@ -1,10 +1,6 @@
 import { useId } from 'react';
 import { LANGUAGE_TESTS, SKILLS, inputFor, testsFor, toClb } from '../crs/languageTests.js';
-
-const clbOptions = Array.from({ length: 11 }, (_, n) => ({
-  key: String(n),
-  label: n < 4 ? (n === 0 ? 'Below 4 / none' : null) : n === 10 ? '10 or more' : String(n),
-})).filter((o) => o.label);
+import { useI18n } from '../i18n/I18nProvider.jsx';
 
 function ClbBadge({ clb, prefix }) {
   const tone = clb >= 9 ? 'success' : clb >= 7 ? 'primary' : clb >= 4 ? 'warning' : 'secondary';
@@ -17,19 +13,25 @@ function ClbBadge({ clb, prefix }) {
  */
 export default function LanguageInput({ value, onChange, language }) {
   const id = useId();
+  const { t } = useI18n();
   const tests = language ? testsFor(language) : [...testsFor('en'), ...testsFor('fr')];
   const test = LANGUAGE_TESTS[value.test];
   const prefix = test?.language === 'fr' ? 'NCLC' : 'CLB';
+  const clbOptions = [
+    { key: '0', label: t('lang.below4') },
+    ...[4, 5, 6, 7, 8, 9].map((n) => ({ key: String(n), label: String(n) })),
+    { key: '10', label: t('lang.tenPlus') },
+  ];
 
   const setScore = (i, score) => onChange({ ...value, scores: value.scores.map((s, j) => (j === i ? score : s)) });
 
   return (
     <div>
       <div className="mb-3">
-        <label className="form-label fw-medium" htmlFor={`${id}-test`}>Language test</label>
+        <label className="form-label fw-medium" htmlFor={`${id}-test`}>{t('lang.test')}</label>
         <select id={`${id}-test`} className="form-select" value={value.test}
           onChange={(e) => onChange({ test: e.target.value, scores: ['', '', '', ''] })}>
-          {tests.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+          {tests.map((x) => <option key={x.key} value={x.key}>{x.labelKey ? t(x.labelKey) : x.label}</option>)}
         </select>
       </div>
       <div className="row g-2">
@@ -38,7 +40,7 @@ export default function LanguageInput({ value, onChange, language }) {
           const input = inputFor(value.test, i);
           return (
             <div className="col-6 col-md-3" key={skill}>
-              <label className="form-label small mb-1" htmlFor={`${id}-${i}`}>{skill}</label>
+              <label className="form-label small mb-1" htmlFor={`${id}-${i}`}>{t(`skill.${skill}`)}</label>
               {test?.direct ? (
                 <select id={`${id}-${i}`} className="form-select" value={value.scores[i] === '' ? '0' : value.scores[i]}
                   onChange={(e) => setScore(i, e.target.value)}>
