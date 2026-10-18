@@ -59,6 +59,8 @@ export default {
   'lang.knowNclc': '我知道我的 NCLC 等級（例如 TEF Canada）',
   'lang.below4': '低於 4／無',
   'lang.tenPlus': '10 或以上',
+  'lang.invalidScore': '請輸入 {min}–{max}',
+  'lang.invalidScoreStep': '請輸入 {min}–{max}，以 {step} 為單位',
   'skill.listening': '聽力',
   'skill.reading': '閱讀',
   'skill.writing': '寫作',

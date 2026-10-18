@@ -53,12 +53,32 @@ export function inputFor(testKey, skillIndex) {
   return Array.isArray(input) ? input[skillIndex] : input;
 }
 
-/** Convert one test score to a CLB level (0 means below CLB 4 or not entered). */
+const isBlank = (score) => score === '' || score === null || score === undefined;
+
+/**
+ * True when a typed test score is possible for that test: inside its range and on its step
+ * (e.g. IELTS 0–9 in steps of 0.5). Blank counts as valid (not entered yet).
+ */
+export function isValidScore(testKey, skillIndex, score) {
+  if (isBlank(score)) return true;
+  const test = LANGUAGE_TESTS[testKey];
+  if (!test) return false;
+  if (test.direct) return true;
+  const value = Number(score);
+  const { min, max, step } = inputFor(testKey, skillIndex);
+  if (!Number.isFinite(value) || value < min || value > max) return false;
+  const steps = (value - min) / step;
+  return Math.abs(steps - Math.round(steps)) < 1e-9;
+}
+
+/** Convert one test score to a CLB level (0 means below CLB 4, not entered, or not a valid score). */
 export function toClb(testKey, skillIndex, score) {
   const test = LANGUAGE_TESTS[testKey];
-  if (score === '' || score === null || score === undefined) return 0;
+  if (isBlank(score)) return 0;
   const value = Number(score);
   if (!test || Number.isNaN(value)) return 0;
+  // An impossible score (e.g. CELPIP 109 from a typo) must not count as CLB 10.
+  if (!isValidScore(testKey, skillIndex, score)) return 0;
   if (test.direct) return Math.min(10, Math.max(0, Math.floor(value)));
   const levels = test.thresholds[skillIndex];
   let clb = 0;

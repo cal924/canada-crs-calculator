@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { LANGUAGE_TESTS, SKILLS, inputFor, testsFor, toClb } from '../crs/languageTests.js';
+import { LANGUAGE_TESTS, SKILLS, inputFor, isValidScore, testsFor, toClb } from '../crs/languageTests.js';
 import { useI18n } from '../i18n/I18nProvider.jsx';
 
 function ClbBadge({ clb, prefix }) {
@@ -38,6 +38,7 @@ export default function LanguageInput({ value, onChange, language }) {
         {SKILLS.map((skill, i) => {
           const clb = toClb(value.test, i, value.scores[i]);
           const input = inputFor(value.test, i);
+          const valid = test?.direct || isValidScore(value.test, i, value.scores[i]);
           return (
             <div className="col-6 col-md-3" key={skill}>
               <label className="form-label small mb-1" htmlFor={`${id}-${i}`}>{t(`skill.${skill}`)}</label>
@@ -48,10 +49,20 @@ export default function LanguageInput({ value, onChange, language }) {
                 </select>
               ) : (
                 <>
-                  <input id={`${id}-${i}`} type="number" inputMode="decimal" className="form-control"
+                  <input id={`${id}-${i}`} type="number" inputMode="decimal"
+                    className={`form-control ${valid ? '' : 'is-invalid'}`} aria-invalid={!valid}
+                    aria-describedby={valid ? undefined : `${id}-${i}-error`}
                     min={input.min} max={input.max} step={input.step} placeholder={`${input.min}–${input.max}`}
                     value={value.scores[i]} onChange={(e) => setScore(i, e.target.value)} />
-                  <div className="mt-1"><ClbBadge clb={clb} prefix={prefix} /></div>
+                  {valid ? (
+                    <div className="mt-1"><ClbBadge clb={clb} prefix={prefix} /></div>
+                  ) : (
+                    <div id={`${id}-${i}-error`} className="invalid-feedback d-block">
+                      {input.step === 1
+                        ? t('lang.invalidScore', { min: input.min, max: input.max })
+                        : t('lang.invalidScoreStep', { min: input.min, max: input.max, step: input.step })}
+                    </div>
+                  )}
                 </>
               )}
             </div>

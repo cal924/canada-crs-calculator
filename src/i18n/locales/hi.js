@@ -59,6 +59,8 @@ export default {
   'lang.knowNclc': 'मुझे अपने NCLC स्तर पता हैं (जैसे TEF Canada)',
   'lang.below4': '4 से कम / कोई नहीं',
   'lang.tenPlus': '10 या अधिक',
+  'lang.invalidScore': '{min}–{max} दर्ज करें',
+  'lang.invalidScoreStep': '{min}–{max} दर्ज करें, {step} के अंतराल में',
   'skill.listening': 'सुनना',
   'skill.reading': 'पढ़ना',
   'skill.writing': 'लिखना',

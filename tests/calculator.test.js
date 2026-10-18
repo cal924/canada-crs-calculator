@@ -105,3 +105,19 @@ test('category eligibility flags', () => {
   assert.equal(calculateCRS({ ...base, secondClb: [7, 7, 7, 6] }).eligibility.frenchCategory, false);
   assert.equal(calculateCRS({ ...base, firstLanguage: 'fr', firstClb: [9, 8, 7, 7] }).eligibility.frenchCategory, true);
 });
+
+test('impossible test scores do not count (e.g. a typo like CELPIP 109)', async () => {
+  const { isValidScore, toClb, toClbList } = await import('../src/crs/languageTests.js');
+  assert.equal(toClb('celpip', 0, '109'), 0);
+  assert.equal(isValidScore('celpip', 0, '109'), false);
+  assert.equal(isValidScore('celpip', 0, '9.5'), false, 'CELPIP is whole numbers');
+  assert.deepEqual(toClbList('celpip', ['10', '9', '9', '9']), [10, 9, 9, 9]);
+  assert.equal(toClb('ielts', 0, '75'), 0, 'IELTS 75 instead of 7.5');
+  assert.equal(toClb('ielts', 0, '6.3'), 0, 'IELTS bands are in steps of 0.5');
+  assert.equal(toClb('ielts', 0, '6.5'), 7);
+  assert.equal(toClb('pte', 0, '9'), 0, 'PTE starts at 10');
+  assert.equal(toClb('tcf', 2, '21'), 0, 'TCF writing is 0–20');
+  assert.equal(toClb('tcf', 0, '549'), 10);
+  assert.equal(isValidScore('celpip', 0, ''), true, 'blank is not an error');
+  assert.equal(isValidScore('clb', 0, '10'), true);
+});

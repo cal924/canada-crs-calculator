@@ -59,6 +59,8 @@ export default {
   'lang.knowNclc': 'I know my NCLC levels (e.g. TEF Canada)',
   'lang.below4': 'Below 4 / none',
   'lang.tenPlus': '10 or more',
+  'lang.invalidScore': 'Enter {min}–{max}',
+  'lang.invalidScoreStep': 'Enter {min}–{max}, in steps of {step}',
   'skill.listening': 'Listening',
   'skill.reading': 'Reading',
   'skill.writing': 'Writing',
