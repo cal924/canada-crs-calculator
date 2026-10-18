@@ -85,6 +85,15 @@ function useTheme() {
   useEffect(() => {
     document.documentElement.setAttribute('data-bs-theme', theme);
     try { localStorage.setItem('crs-theme', theme); } catch { /* ignore */ }
+    // Paper is white and printers usually skip backgrounds, so always print with the light theme.
+    const toLight = () => document.documentElement.setAttribute('data-bs-theme', 'light');
+    const restore = () => document.documentElement.setAttribute('data-bs-theme', theme);
+    window.addEventListener('beforeprint', toLight);
+    window.addEventListener('afterprint', restore);
+    return () => {
+      window.removeEventListener('beforeprint', toLight);
+      window.removeEventListener('afterprint', restore);
+    };
   }, [theme]);
   return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))];
 }
@@ -177,7 +186,7 @@ export default function App() {
       <header className="hero py-4 mb-4">
         <div className="container">
           <h1 className="h3 fw-bold mb-1">{t('app.heroTitle')}</h1>
-          <p className="mb-0 text-body-secondary">{t('app.heroText')}</p>
+          <p className="mb-0 text-body-secondary d-print-none">{t('app.heroText')}</p>
           <button type="button" className="btn btn-outline-danger btn-sm mt-3 d-print-none" onClick={openDraws}>
             📊 {t('draws.button')}
           </button>

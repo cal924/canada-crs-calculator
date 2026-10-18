@@ -99,7 +99,7 @@ export default function ScoreSummary({ result, onShare, shareStatus, onReset, dr
       <div className="card-body">
         <div className="text-center mb-3">
           <div className="text-body-secondary small text-uppercase fw-semibold">{t('summary.heading')}</div>
-          <div className="display-3 fw-bold text-danger lh-1 my-2" aria-live="polite">{r.total}</div>
+          <div className="display-3 fw-bold text-danger lh-1 my-2 score-total" aria-live="polite">{r.total}</div>
           <span className="badge text-bg-light border text-wrap">
             {t(lmi ? 'summary.rulesAfter' : 'summary.rulesBefore')} · {t(s ? 'summary.withSpouse' : 'summary.single')}
           </span>
@@ -107,6 +107,7 @@ export default function ScoreSummary({ result, onShare, shareStatus, onReset, dr
 
         <LatestDraws draws={draws} result={r} onOpenDraws={onOpenDraws} t={t} locale={locale} />
 
+        <div className="score-groups">
         <Group title={t('summary.core')} total={r.coreTotal} max={lmi ? (s ? 390 : 420) : (s ? 460 : 500)}>
           <Row label={t('summary.age')} value={r.core.age} />
           <Row label={t('summary.education')} value={r.core.education} />
@@ -146,6 +147,8 @@ export default function ScoreSummary({ result, onShare, shareStatus, onReset, dr
           <Row label={t('summary.canadianEducation')} value={r.additional.canadianEducation} />
           <Row label={t('summary.sibling')} value={r.additional.sibling} />
         </Group>
+
+        </div>
 
         <div className="d-grid gap-2 d-print-none">
           <button type="button" className="btn btn-danger" onClick={onShare}>

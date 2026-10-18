@@ -31,10 +31,32 @@
   }
 }
 
+/* Print: one page (US Letter or A4) with just the result. */
+@page {
+  margin: 0.5in;
+}
 @media print {
+  html { font-size: 11pt; }
+  body { padding-bottom: 0; background: #fff; }
   .col-lg-7, .col-xl-8 { display: none; }
   .col-lg-5, .col-xl-4 { width: 100%; }
-  .score-card { box-shadow: none !important; }
+  .container { max-width: none; padding: 0; }
+  main { padding-bottom: 0 !important; }
+  .row { --bs-gutter-x: 0; --bs-gutter-y: 0; }
+
+  .hero { background: none; border: 0; padding: 0 0 0.5rem !important; margin-bottom: 0.5rem !important; }
+  .hero h1 { font-size: 1.4rem; }
+
+  .score-card { box-shadow: none !important; border-top-width: 3px; }
+  .score-card .card-body { padding: 0.75rem 1rem; }
+  .score-total { font-size: 3rem; margin: 0.25rem 0 !important; }
+
+  .score-groups { columns: 2; column-gap: 2rem; }
+  .score-groups > div { break-inside: avoid; margin-bottom: 0.75rem !important; }
+  .score-groups .list-group-item { padding-top: 0.1rem !important; padding-bottom: 0.1rem !important; }
+
+  footer { padding: 0.75rem 0 0 !important; margin-top: 0.75rem; font-size: 8.5pt; }
+  footer a { color: inherit; }
 }
 
 .locale-picker {
